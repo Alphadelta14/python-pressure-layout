@@ -1,5 +1,7 @@
 """Pressure Layout classes"""
 
+import operator
+
 __all__ = ['Layout']
 
 CONST_PHI = (1+5**0.5)/2.0  # Golden ratio
@@ -212,4 +214,49 @@ class Layout(LayoutChildren):
         size : type(float, float)
             Width and height of layout
         """
-        return (0.0, 0.0)
+        # Sort children from fattest to thinnest
+        children = sorted(self.children, key=operator.attrgetter('width'),
+                          reverse=True)
+        total_height = sum(child.height for child in children)
+
+        best_score = 1e100
+        best = [children]
+        for num_col in xrange(1, len(children)):
+            height_cap = total_height/num_col*1.05
+            cols = []
+            for cidx, child in enumerate(children):
+                for col in cols:
+                    # Check to see if this child fits into the column
+                    if sum(c.height for c in col)+child.height < height_cap:
+                        col.append(child)
+                        break
+                else:
+                    #  Otherwise, create a new column with just this element
+                    cols.append([child])
+            width = sum(max(c.width for c in col) for col in cols)
+            height = max(sum(c.height for c in col) for col in cols)
+            # score is half perimeter with a penalty on height
+            score = width+height*self.ratio
+            if score < best_score:
+                best = cols
+                best_score = score
+        cols = best
+        for col in cols:
+            # Sort column by original children order
+            col.sort(key=lambda c: self.children.index(c))
+
+        # Commit the layout to the children
+        x = 0
+        col_width = 0
+        max_height = 0
+        for col in cols:
+            x += col_width  # increase x by last column width
+            y = 0
+            col_width = max(c.width for c in col)
+            col_height = 0
+            for child in col:
+                child.x = x  # TODO:padding
+                child.y = y
+                y += child.height
+            max_height = max(max_height, y)
+        return (x+col_width, max_height)
