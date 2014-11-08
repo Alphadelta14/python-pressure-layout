@@ -93,9 +93,17 @@ class LayoutChildren(LayoutChild):
     def width(self):
         return sum(child.width for child in self.children)
 
+    @width.setter
+    def width(self, value):
+        pass
+
     @property
     def height(self):
         return max(child.height for child in self.children)
+
+    @height.setter
+    def height(self, value):
+        pass
 
 
 class Layout(LayoutChildren):
