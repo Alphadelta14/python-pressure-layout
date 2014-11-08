@@ -56,6 +56,8 @@ class Layout(LayoutChild):
     ----------
     ratio : float
         width/height ration to optimize around. Default CONST_PHI.
+    children : list of LayoutChild
+
 
     Methods
     -------
@@ -63,6 +65,63 @@ class Layout(LayoutChild):
         Add groups of children
     optimize()
         Set the positions of the children in an optimized fashion
+    align_horizontal()
+        Set the positions of the children in one row
+    align_vertical()
+        Set the positions of the children in one column
     """
     def __init__(self, ratio=CONST_PHI):
         self.ratio = ratio
+        self.children = []
+        self.__class__.__init__(self, None, width=0, height=0)
+
+    def align_horizontal(self):
+        """Sets children up horizontally
+
+        Returns
+        -------
+        size : type(float, float)
+            Width and height of layout
+        """
+        width = 0
+        height = 0
+        for child in self.children:
+            child.x = width
+            child.y = 0
+            width += child.width
+            height = max(height, child.height)
+        self.width = width
+        self.height = height
+        return (width, height)
+
+    def align_vertical(self):
+        """Sets children up vertically
+
+        Returns
+        -------
+        size : type(float, float)
+            Width and height of layout
+        """
+        width = 0
+        height = 0
+        for child in self.children:
+            child.x = 0
+            child.y = height
+            height += child.height
+            width = max(width, child.width)
+        self.width = width
+        self.height = height
+        return (width, height)
+
+    def optimize(self):
+        """Sets children up in an optimized fashion.
+
+        The children maintain column manners and try to be in a box
+        closest to the ratio as possible.
+
+        Returns
+        -------
+        size : type(float, float)
+            Width and height of layout
+        """
+        return (0.0, 0.0)
