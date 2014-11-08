@@ -26,8 +26,20 @@ class LayoutChild(object):
     box()
         Get the offset and dimensions of this container
     """
+    def __new__(cls, *args, **kwargs):
+        if cls == LayoutChild:
+            try:
+                element = kwargs['element']
+            except KeyError:
+                element = args[0]
+            if isinstance(element, LayoutChild):
+                return element
+        return object.__new__(cls, *args, **kwargs)
+
     def __init__(self, element, width=None, height=None, padding_horizontal=5,
                  padding_vertical=5):
+        if isinstance(element, LayoutChild):
+            element = element.element
         self.element = element
         self.x = 0.0
         self.y = 0.0
@@ -57,8 +69,7 @@ class LayoutChildren(LayoutChild):
     children : list of LayoutChild
     """
     def __init__(self, children):
-        self.children = [child if isinstance(child, LayoutChild)
-                         else LayoutChild(child) for child in children]
+        self.children = [LayoutChild(child) for child in children]
         self._x = 0.0
         self._y = 0.0
         LayoutChild.__init__(self, None, width=0, height=0)
@@ -144,7 +155,7 @@ class Layout(LayoutChildren):
         if not children:
             return
         elif len(children) == 1:  # Single child
-            self.children.append(children)
+            self.children.append(LayoutChild(children[0]))
         else:
             self.children.append(LayoutChildren(children))
 
