@@ -57,8 +57,45 @@ class LayoutChildren(LayoutChild):
     children : list of LayoutChild
     """
     def __init__(self, children):
-        self.children = children
+        self.children = [child if isinstance(child, LayoutChild)
+                         else LayoutChild(child) for child in children]
+        self._x = 0.0
+        self._y = 0.0
         self.__class__.__init__(self, None, width=0, height=0)
+
+    @property
+    def x(self):
+        return self._x
+
+    @x.setter
+    def x(self, value):
+        delta = value-self._x
+        self._x = value
+        if not delta:
+            return
+        for child in self.children:
+            child.x += delta
+
+    @property
+    def y(self):
+        return self._y
+
+    @y.setter
+    def y(self, value):
+        delta = value-self._y
+        self._y = value
+        if not delta:
+            return
+        for child in self.children:
+            child.y += delta
+
+    @property
+    def width(self):
+        return sum(child.width for child in self.children)
+
+    @property
+    def height(self):
+        return max(child.height for child in self.children)
 
 
 class Layout(LayoutChildren):
