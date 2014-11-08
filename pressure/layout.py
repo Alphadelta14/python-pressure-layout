@@ -67,12 +67,58 @@ class LayoutChildren(LayoutChild):
     Attributes
     ----------
     children : list of LayoutChild
+
+    Methods
+    -------
+    align_horizontal()
+        Set the positions of the children in one row
+    align_vertical()
+        Set the positions of the children in one column
     """
     def __init__(self, children):
         self.children = [LayoutChild(child) for child in children]
         self._x = 0.0
         self._y = 0.0
         LayoutChild.__init__(self, None, width=0, height=0)
+        self.align_horizontal()
+
+    def align_horizontal(self):
+        """Sets children up horizontally
+
+        Returns
+        -------
+        size : type(float, float)
+            Width and height of layout
+        """
+        width = 0
+        height = 0
+        for child in self.children:
+            child.x = width
+            child.y = 0
+            width += child.width
+            height = max(height, child.height)
+        self.width = width
+        self.height = height
+        return (width, height)
+
+    def align_vertical(self):
+        """Sets children up vertically
+
+        Returns
+        -------
+        size : type(float, float)
+            Width and height of layout
+        """
+        width = 0
+        height = 0
+        for child in self.children:
+            child.x = 0
+            child.y = height
+            height += child.height
+            width = max(width, child.width)
+        self.width = width
+        self.height = height
+        return (width, height)
 
     @property
     def x(self):
@@ -132,10 +178,6 @@ class Layout(LayoutChildren):
         Add groups of children
     optimize()
         Set the positions of the children in an optimized fashion
-    align_horizontal()
-        Set the positions of the children in one row
-    align_vertical()
-        Set the positions of the children in one column
     """
     def __init__(self, ratio=CONST_PHI):
         self.ratio = ratio
@@ -158,44 +200,6 @@ class Layout(LayoutChildren):
             self.children.append(LayoutChild(children[0]))
         else:
             self.children.append(LayoutChildren(children))
-
-    def align_horizontal(self):
-        """Sets children up horizontally
-
-        Returns
-        -------
-        size : type(float, float)
-            Width and height of layout
-        """
-        width = 0
-        height = 0
-        for child in self.children:
-            child.x = width
-            child.y = 0
-            width += child.width
-            height = max(height, child.height)
-        self.width = width
-        self.height = height
-        return (width, height)
-
-    def align_vertical(self):
-        """Sets children up vertically
-
-        Returns
-        -------
-        size : type(float, float)
-            Width and height of layout
-        """
-        width = 0
-        height = 0
-        for child in self.children:
-            child.x = 0
-            child.y = height
-            height += child.height
-            width = max(width, child.width)
-        self.width = width
-        self.height = height
-        return (width, height)
 
     def optimize(self):
         """Sets children up in an optimized fashion.
