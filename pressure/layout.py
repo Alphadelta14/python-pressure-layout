@@ -2,7 +2,7 @@
 
 __all__ = ['Layout']
 
-CONST_PHI = (1+5**0.5)/2.0
+CONST_PHI = (1+5**0.5)/2.0  # Golden ratio
 
 
 class LayoutChild(object):
@@ -26,7 +26,27 @@ class LayoutChild(object):
     box()
         Get the offset and dimensions of this container
     """
-    pass
+    def __init__(self, element, width=None, height=None, padding_horizontal=5,
+                 padding_vertical=5):
+        self.element = element
+        self.x = 0.0
+        self.y = 0.0
+        self.width = element.width if width is None else width
+        self.height = element.height if height is None else height
+        self.padding_horizontal = padding_horizontal
+        self.padding_vertical = padding_vertical
+        self.width += self.padding_horizontal
+        self.height += self.padding_vertical
+
+    def box(self):
+        """Returns the box of this child
+
+        Returns
+        -------
+        box : tuple(float, float, float, float)
+            Tuple of (x, y, width, height)
+        """
+        return (self.x, self.y, self.width, self.height)
 
 
 class Layout(LayoutChild):
@@ -44,7 +64,5 @@ class Layout(LayoutChild):
     optimize()
         Set the positions of the children in an optimized fashion
     """
-    pass
-
-
-
+    def __init__(self, ratio=CONST_PHI):
+        self.ratio = ratio
