@@ -85,6 +85,24 @@ class Layout(LayoutChildren):
         self.ratio = ratio
         self.__class__.__init__(self, [])
 
+    def add_children(self, *children):
+        """Adds children to the layout
+
+        If multiple children are provided, they will be placed side by side
+
+        Parameters
+        ----------
+        child_1 : element
+        ...
+        child_n : element
+        """
+        if not children:
+            return
+        elif len(children) == 1:  # Single child
+            self.children.append(children)
+        else:
+            self.children.append(LayoutChildren(children))
+
     def align_horizontal(self):
         """Sets children up horizontally
 
