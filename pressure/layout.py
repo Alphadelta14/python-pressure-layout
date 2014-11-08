@@ -49,19 +49,30 @@ class LayoutChild(object):
         return (self.x, self.y, self.width, self.height)
 
 
-class Layout(LayoutChild):
+class LayoutChildren(LayoutChild):
+    """Grouping of LayoutChild children
+
+    Attributes
+    ----------
+    children : list of LayoutChild
+    """
+    def __init__(self, children):
+        self.children = children
+        self.__class__.__init__(self, None, width=0, height=0)
+
+
+class Layout(LayoutChildren):
     """An optimizeable Layout
 
     Attributes
     ----------
     ratio : float
         width/height ration to optimize around. Default CONST_PHI.
-    children : list of LayoutChild
 
 
     Methods
     -------
-    addChildren(*element)
+    add_children(*element)
         Add groups of children
     optimize()
         Set the positions of the children in an optimized fashion
@@ -72,8 +83,7 @@ class Layout(LayoutChild):
     """
     def __init__(self, ratio=CONST_PHI):
         self.ratio = ratio
-        self.children = []
-        self.__class__.__init__(self, None, width=0, height=0)
+        self.__class__.__init__(self, [])
 
     def align_horizontal(self):
         """Sets children up horizontally
