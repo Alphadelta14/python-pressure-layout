@@ -99,7 +99,7 @@ class LayoutChildren(LayoutChild):
 
     @property
     def height(self):
-        return max(child.height for child in self.children)
+        return max([0]+[child.height for child in self.children])
 
     @height.setter
     def height(self, value):
