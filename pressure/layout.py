@@ -61,7 +61,7 @@ class LayoutChildren(LayoutChild):
                          else LayoutChild(child) for child in children]
         self._x = 0.0
         self._y = 0.0
-        self.__class__.__init__(self, None, width=0, height=0)
+        LayoutChild.__init__(self, None, width=0, height=0)
 
     @property
     def x(self):
@@ -120,7 +120,7 @@ class Layout(LayoutChildren):
     """
     def __init__(self, ratio=CONST_PHI):
         self.ratio = ratio
-        self.__class__.__init__(self, [])
+        LayoutChildren.__init__(self, [])
 
     def add_children(self, *children):
         """Adds children to the layout
