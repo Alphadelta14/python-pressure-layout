@@ -35,8 +35,8 @@ class LayoutChild(object):
         self.y = 0.0
         self.width = element.width if width is None else width
         self.height = element.height if height is None else height
-        self.padding_horizontal = padding_horizontal
-        self.padding_vertical = padding_vertical
+        self._padding_horizontal = padding_horizontal
+        self._padding_vertical = padding_vertical
         self.width += self.padding_horizontal
         self.height += self.padding_vertical
 
@@ -49,6 +49,33 @@ class LayoutChild(object):
             Tuple of (x, y, width, height)
         """
         return (self.x, self.y, self.width, self.height)
+
+    @property
+    def padding_horizontal(self):
+        return self._padding_horizontal
+
+    @padding_horizontal.setter
+    def padding_horizontal(self, value):
+        delta = value-self._padding_horizontal
+        if not delta:
+            return
+        self.width += value
+        self._padding_horizontal = value
+
+    @property
+    def padding_vertical(self):
+        return self._padding_vertical
+
+    @padding_vertical.setter
+    def padding_vertical(self, value):
+        delta = value-self._padding_vertical
+        if not delta:
+            return
+        self.height += value
+        self._padding_vertical = value
+
+    def __str__(self):
+        return '{cls}<dims={box}>'.format(cls=self.__class__, box=self.box())
 
 
 class Layout(LayoutChild):
@@ -167,6 +194,10 @@ class Layout(LayoutChild):
 
     @property
     def width(self):
+        if not self.children:
+            return 0
+        return max(child.width+child.x+child.padding_horizontal/2
+                   for child in self.children)-self.x+self.padding_horizontal
         return sum(child.width for child in self.children)
 
     @width.setter
@@ -175,6 +206,10 @@ class Layout(LayoutChild):
 
     @property
     def height(self):
+        if not self.children:
+            return 0
+        return max(child.height+child.y+child.padding_vertical/2
+                   for child in self.children)-self.y+self.padding_vertical
         return max([0]+[child.height for child in self.children])
 
     @height.setter
@@ -223,7 +258,7 @@ class Layout(LayoutChild):
 
         best_score = 1e100
         best = [children]
-        for num_col in xrange(1, len(children)):
+        for num_col in xrange(1, len(children)+1):
             height_cap = total_height/num_col*1.05
             cols = []
             for cidx, child in enumerate(children):
@@ -248,20 +283,22 @@ class Layout(LayoutChild):
             col.sort(key=lambda c: self.children.index(c))
 
         # Commit the layout to the children
-        x = 0
+        x = self.padding_horizontal/2
         col_width = 0
         max_height = 0
         for col in cols:
             x += col_width  # increase x by last column width
-            y = 0
+            y = self.padding_vertical/2
             try:
                 col_width = max(c.width for c in col)
             except ValueError:
                 col_width = 0
             col_height = 0
             for child in col:
-                child.x = x  # TODO:padding
-                child.y = y
+                # TODO: centering
+                child.x = x+child.padding_horizontal/2
+                child.y = y+child.padding_vertical/2
                 y += child.height
             max_height = max(max_height, y)
-        return (x+col_width, max_height)
+        return (x+col_width+self.padding_horizontal/2,
+                max_height+self.padding_vertical/2)
