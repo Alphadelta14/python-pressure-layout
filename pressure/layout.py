@@ -63,26 +63,45 @@ class LayoutChild(object):
         return (self.x, self.y, self.width, self.height)
 
 
-class LayoutChildren(LayoutChild):
-    """Grouping of LayoutChild children
+class Layout(LayoutChild):
+    """An optimizeable Layout
 
     Attributes
     ----------
     children : list of LayoutChild
+    ratio : float
+        width/height ration to optimize around. Default CONST_PHI.
+    align : Layout.HORIZONTAL or Layout.VERTICAL or Layout.OPTIMIZED
+        default alignment of this layout
 
     Methods
     -------
+    add_children(*element)
+        Add groups of children
+    optimize()
+        Set the positions of the children in an optimized fashion
     align_horizontal()
         Set the positions of the children in one row
     align_vertical()
         Set the positions of the children in one column
     """
-    def __init__(self, children):
+    HORIZONTAL = 1
+    VERTICAL = 2
+    OPTIMIZED = 3
+
+    def __init__(self, *children, **kwargs):
+        self.ratio = kwargs.get('ratio', CONST_PHI)
+        self.align = kwargs.get('align', Layout.OPTIMIZED)
         self.children = [LayoutChild(child) for child in children]
         self._x = 0.0
         self._y = 0.0
         LayoutChild.__init__(self, None, width=0, height=0)
-        self.align_horizontal()
+        if self.align == Layout.HORIZONTAL:
+            self.align_horizontal()
+        elif self.align == Layout.VERTICAL:
+            self.align_vertical()
+        elif self.align == Layout.OPTIMIZED:
+            self.optimize()
 
     def align_horizontal(self):
         """Sets children up horizontally
@@ -164,44 +183,26 @@ class LayoutChildren(LayoutChild):
     def height(self, value):
         pass
 
-
-class Layout(LayoutChildren):
-    """An optimizeable Layout
-
-    Attributes
-    ----------
-    ratio : float
-        width/height ration to optimize around. Default CONST_PHI.
-
-
-    Methods
-    -------
-    add_children(*element)
-        Add groups of children
-    optimize()
-        Set the positions of the children in an optimized fashion
-    """
-    def __init__(self, ratio=CONST_PHI):
-        self.ratio = ratio
-        LayoutChildren.__init__(self, [])
-
-    def add_children(self, *children):
+    def add_children(self, *children, **kwargs):
         """Adds children to the layout
 
-        If multiple children are provided, they will be placed side by side
+        If multiple children are provided, they will be placed according
+        to alignment (horizontal by default)
 
         Parameters
         ----------
         child_1 : element
         ...
         child_n : element
+        align : Layout.HORIZONTAL or Layout.VERTICAL or Layout.OPTIMIZED
         """
+        align = kwargs.get('align', Layout.HORIZONTAL)
         if not children:
             return
         elif len(children) == 1:  # Single child
             self.children.append(LayoutChild(children[0]))
         else:
-            self.children.append(LayoutChildren(children))
+            self.children.append(Layout(*children, ratio=self.ratio, align=align))
 
     def optimize(self):
         """Sets children up in an optimized fashion.
@@ -252,7 +253,10 @@ class Layout(LayoutChildren):
         for col in cols:
             x += col_width  # increase x by last column width
             y = 0
-            col_width = max(c.width for c in col)
+            try:
+                col_width = max(c.width for c in col)
+            except ValueError:
+                col_width = 0
             col_height = 0
             for child in col:
                 child.x = x  # TODO:padding
