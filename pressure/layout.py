@@ -28,20 +28,8 @@ class LayoutChild(object):
     box()
         Get the offset and dimensions of this container
     """
-    def __new__(cls, *args, **kwargs):
-        if cls == LayoutChild:
-            try:
-                element = kwargs['element']
-            except KeyError:
-                element = args[0]
-            if isinstance(element, LayoutChild):
-                return element
-        return object.__new__(cls, *args, **kwargs)
-
     def __init__(self, element, width=None, height=None, padding_horizontal=5,
                  padding_vertical=5):
-        if isinstance(element, LayoutChild):
-            element = element.element
         self.element = element
         self.x = 0.0
         self.y = 0.0
@@ -95,8 +83,8 @@ class Layout(LayoutChild):
         self.ratio = kwargs.get('ratio', CONST_PHI)
         self.align = kwargs.get('align', Layout.OPTIMIZED)
         self.padding = kwargs.get('padding', 5)
-        self.children = [LayoutChild(child, padding_horizontal=self.padding,
-                                     padding_vertical=self.padding)
+        self.children = [self.child(child, padding_horizontal=self.padding,
+                                    padding_vertical=self.padding)
                          for child in children]
         self._x = 0.0
         self._y = 0.0
@@ -107,6 +95,11 @@ class Layout(LayoutChild):
             self.align_vertical()
         elif self.align == Layout.OPTIMIZED:
             self.optimize()
+
+    def child(self, element, *args, **kwargs):
+        if isinstance(element, LayoutChild):
+            return element
+        return LayoutChild(element, *args, **kwargs)
 
     def align_horizontal(self):
         """Sets children up horizontally
@@ -205,9 +198,9 @@ class Layout(LayoutChild):
         if not children:
             return
         elif len(children) == 1:  # Single child
-            self.children.append(LayoutChild(children[0],
-                                             padding_horizontal=self.padding,
-                                             padding_vertical=self.padding))
+            self.children.append(self.child(children[0],
+                                            padding_horizontal=self.padding,
+                                            padding_vertical=self.padding))
         else:
             self.children.append(Layout(*children, ratio=self.ratio,
                                         align=align, padding=self.padding))
