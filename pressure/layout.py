@@ -73,6 +73,8 @@ class Layout(LayoutChild):
         width/height ration to optimize around. Default CONST_PHI.
     align : Layout.HORIZONTAL or Layout.VERTICAL or Layout.OPTIMIZED
         default alignment of this layout
+    padding : float
+        spacing between children
 
     Methods
     -------
@@ -92,7 +94,10 @@ class Layout(LayoutChild):
     def __init__(self, *children, **kwargs):
         self.ratio = kwargs.get('ratio', CONST_PHI)
         self.align = kwargs.get('align', Layout.OPTIMIZED)
-        self.children = [LayoutChild(child) for child in children]
+        self.padding = kwargs.get('padding', 5)
+        self.children = [LayoutChild(child, padding_horizontal=self.padding,
+                                     padding_vertical=self.padding)
+                         for child in children]
         self._x = 0.0
         self._y = 0.0
         LayoutChild.__init__(self, None, width=0, height=0)
@@ -200,9 +205,12 @@ class Layout(LayoutChild):
         if not children:
             return
         elif len(children) == 1:  # Single child
-            self.children.append(LayoutChild(children[0]))
+            self.children.append(LayoutChild(children[0],
+                                             padding_horizontal=self.padding,
+                                             padding_vertical=self.padding))
         else:
-            self.children.append(Layout(*children, ratio=self.ratio, align=align))
+            self.children.append(Layout(*children, ratio=self.ratio,
+                                        align=align, padding=self.padding))
 
     def optimize(self):
         """Sets children up in an optimized fashion.
