@@ -33,10 +33,10 @@ class LayoutChild(object):
         self.element = element
         self.x = 0.0
         self.y = 0.0
-        self.width = element.width if width is None else width
-        self.height = element.height if height is None else height
         self._padding_horizontal = padding_horizontal
         self._padding_vertical = padding_vertical
+        self.width = element.width if width is None else width
+        self.height = element.height if height is None else height
         self.width += self.padding_horizontal
         self.height += self.padding_vertical
 
@@ -202,7 +202,10 @@ class Layout(LayoutChild):
 
     @width.setter
     def width(self, value):
-        pass
+        if not self.children:
+            return
+        child = self.children[-1]
+        child.x = self.x+value-child.width-self.padding_horizontal
 
     @property
     def height(self):
@@ -298,6 +301,7 @@ class Layout(LayoutChild):
                 # TODO: centering
                 child.x = x+child.padding_horizontal/2
                 child.y = y+child.padding_vertical/2
+                child.width = col_width
                 y += child.height
             max_height = max(max_height, y)
         return (x+col_width+self.padding_horizontal/2,
